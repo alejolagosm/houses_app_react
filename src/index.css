@@ -185,12 +185,12 @@ button {
 }
 
 .nameInput {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   background: url('./assets/svg/badgeIcon.svg') #ffffff 2.5% center no-repeat;
 }
 
 .emailInput {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   background: url('./assets/svg/personIcon.svg') #ffffff 2.5% center no-repeat;
 }
 
@@ -199,7 +199,7 @@ button {
 }
 
 .passwordInput {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   background: url('./assets/svg/lockIcon.svg') #ffffff 2.5% center no-repeat;
 }
 
@@ -220,7 +220,7 @@ button {
 
 .signInBar,
 .signUpBar {
-  margin-top: 3rem;
+  margin-top: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -264,7 +264,7 @@ button {
 }
 
 .socialLogin {
-  margin-top: 4rem;
+  margin-top: 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -276,7 +276,7 @@ button {
   justify-content: center;
   align-items: center;
   padding: 0.75rem;
-  margin: 1.5rem;
+  margin: 0.5rem;
   width: 3rem;
   height: 3rem;
   background-color: #ffffff;
@@ -289,11 +289,12 @@ button {
 }
 
 .registerLink {
-  margin-top: 4rem;
   color: #00cc66;
   font-weight: 600;
-  text-align: center;
-  margin-bottom: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem auto;
 }
 
 @media (min-width: 1217px) {
@@ -479,7 +480,7 @@ button {
   font-weight: 600;
   border-radius: 1rem;
   opacity: 0.7;
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 
 .listingDetails {
@@ -544,7 +545,7 @@ button {
 }
 
 .listingLocationTitle {
-  margin-top: 2rem;
+  margin-top: 1rem;
   font-weight: 600;
   font-size: 1.25rem;
 }
@@ -584,7 +585,7 @@ button {
 }
 
 .contactLandlord {
-  margin-top: 2rem;
+  margin-top: 1rem;
   display: flex;
   align-items: center;
 }
@@ -599,7 +600,7 @@ button {
 }
 
 .messageDiv {
-  margin-top: 2rem;
+  margin-top: 1rem;
   display: flex;
   flex-direction: column;
   margin-bottom: 4rem;
@@ -702,7 +703,7 @@ button {
 }
 
 .listingText {
-  margin-top: 3rem;
+  margin-top: 1.5rem;
   font-weight: 600;
 }
 
@@ -803,7 +804,7 @@ button {
 }
 
 .createListingButton {
-  margin-top: 5rem;
+  margin-top: 3rem;
 }
 
 .offers {
