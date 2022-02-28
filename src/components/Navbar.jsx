@@ -6,15 +6,16 @@ import { ReactComponent as ExploreIcon } from '../assets/svg/exploreIcon.svg';
 import { ReactComponent as PersonOutlineIcon } from '../assets/svg/personOutlineIcon.svg';
 
 function Navbar() {
+  // Start hooks
   const navigate = useNavigate();
   const location = useLocation();
-
+  // Get the location parameter to set the active state on the correct button
   const pathMatchRoute = route => {
     if (route === location.pathname) {
       return true;
     }
   };
-
+  // jsx return for the component
   return (
     <header className="navbar">
       <nav className="navbarNav">

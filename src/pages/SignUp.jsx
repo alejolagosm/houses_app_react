@@ -3,11 +3,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-import OAuth from '../components/OAuth';
-
-import { ReactComponent as ArrowRightIcon } from '../assets/svg/keyboardArrowRightIcon.svg';
-import visibilityIcon from '../assets/svg/visibilityIcon.svg';
-
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -16,18 +11,24 @@ import {
 import { db } from '../firebase.config';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
 
+import OAuth from '../components/OAuth';
+
+import { ReactComponent as ArrowRightIcon } from '../assets/svg/keyboardArrowRightIcon.svg';
+import visibilityIcon from '../assets/svg/visibilityIcon.svg';
+
 function SignUp() {
+  // Set State variables for the component
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
   });
-
+  // Destructure variables to use them in the form
   const { name, email, password } = formData;
-
+  // Start navigate hook to redirect
   const navigate = useNavigate();
-
+  // Function to change the form data according to the input from the user
   const onChange = e => {
     setFormData(prevState => ({
       ...prevState,
@@ -35,9 +36,10 @@ function SignUp() {
     }));
   };
 
+  // Function to submit the form data
   const onSubmit = async e => {
     e.preventDefault();
-
+    // Create new user on the database. This should be improved to verify the email, set a minimum strength for the password, verify that the email doesn´t already exist in the database.
     try {
       const auth = getAuth();
       const userCredential = await createUserWithEmailAndPassword(
@@ -45,25 +47,20 @@ function SignUp() {
         email,
         password
       );
-
       const user = userCredential.user;
-
       updateProfile(auth.currentUser, {
         displayName: name,
       });
-
       const formDataCopy = { ...formData };
       delete formDataCopy.password;
       formDataCopy.timestamp = serverTimestamp();
-
       await setDoc(doc(db, 'users', user.uid), formDataCopy);
-
       navigate('/');
     } catch (err) {
       toast.error('Incorrect user credentials');
     }
   };
-
+  // jsx return
   return (
     <>
       <div className="pageContainer">
@@ -111,7 +108,6 @@ function SignUp() {
               </button>
             </div>
           </form>
-
           <OAuth />
           <Link to="/sign-in" className="registerLink">
             Or, Sign in

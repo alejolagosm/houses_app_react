@@ -3,21 +3,22 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+
 import OAuth from '../components/OAuth';
 
 import { ReactComponent as ArrowRightIcon } from '../assets/svg/keyboardArrowRightIcon.svg';
 import visibilityIcon from '../assets/svg/visibilityIcon.svg';
 
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-
 function SignIn() {
+  // Set State variables for the component
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
-
+  // Destructure variables to use them in the form
   const { email, password } = formData;
-
+  // Start navigate hook to redirect
   const navigate = useNavigate();
-
+  // Function to change the form data according to the input from the user
   const onChange = e => {
     setFormData(prevState => ({
       ...prevState,
@@ -27,18 +28,17 @@ function SignIn() {
     }));
   };
 
+  // Function to submit the form data
   const onSubmit = async e => {
     e.preventDefault();
-
+    // Confirm the user credentials from the database
     try {
       const auth = getAuth();
-
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password
       );
-
       if (userCredential.user) {
         navigate('/');
       }
@@ -46,7 +46,7 @@ function SignIn() {
       toast.error('Incorrect user credentials');
     }
   };
-
+  // jsx return to render the component
   return (
     <>
       <div className="pageContainer">

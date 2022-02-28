@@ -1,13 +1,15 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
-import Spinner from './Spinner';
-
 import { useAuthStatus } from '../hooks/useAuthStatus';
 
+import Spinner from './Spinner';
+// Private Route component to redirect a logged in user to the profile, and any other user to the sign-in page
 const PrivateRoute = () => {
+  // Set State Variables
   const { loggedIn, loading } = useAuthStatus();
 
+  // Show Loading Component
   if (loading) {
     return (
       <div>
@@ -17,6 +19,7 @@ const PrivateRoute = () => {
     );
   }
 
+  // jsx return
   return loggedIn ? <Outlet /> : <Navigate to="/sign-in" />;
 };
 

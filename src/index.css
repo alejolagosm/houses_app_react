@@ -371,6 +371,23 @@ button {
   }
 }
 
+.swiperSlideType {
+  font-size: 0.8rem;
+  color: #fff;
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  font-weight: 400;
+  max-width: 50%;
+  background-color: #00cc66;
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+}
+@media (min-width: 1024px) {
+  .swiperSlideType {
+    font-size: 0.5rem;
+  }
+}
 .exploreCategories {
   display: flex;
   justify-content: space-between;

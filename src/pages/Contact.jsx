@@ -1,11 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import {
-  Link,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { getDoc, doc } from 'firebase/firestore';
@@ -19,6 +14,7 @@ function Contact() {
   const [message, setMessage] = useState('');
   const [landlord, setLandlord] = useState(null);
   const [loading, setLoading] = useState(true);
+  // es-lint-disable-next-line
   const [searchParams, setSearchParams] = useSearchParams();
 
   //   Navigate and params variables

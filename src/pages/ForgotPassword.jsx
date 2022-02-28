@@ -8,12 +8,15 @@ import { ReactComponent as ArrowRightIcon } from '../assets/svg/keyboardArrowRig
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 
 function ForgotPassword() {
+  // Set State variables
   const [email, setEmail] = useState('');
 
+  // Function to update the email according to the user input
   const onChange = e => {
     setEmail(e.target.value);
   };
 
+  // Function to submit the form
   const onSubmit = async e => {
     e.preventDefault();
     try {
@@ -24,7 +27,7 @@ function ForgotPassword() {
       toast.error('Unable to send reset email');
     }
   };
-
+  // jsx return to render the component
   return (
     <div className="pageContainer">
       <header>

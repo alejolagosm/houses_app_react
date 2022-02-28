@@ -1,11 +1,11 @@
 import React from 'react';
 // React hooks
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 // Firebase variables and functions to use the database
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import {
   getStorage,
   ref,
@@ -14,20 +14,21 @@ import {
 } from 'firebase/storage';
 import { db } from '../firebase.config';
 
+// This is to create a unique id for each uploaded listing
+import { v4 as uuidv4 } from 'uuid';
+
 // Components to render await and errors
 import Spinner from '../components/Spinner';
 import { toast } from 'react-toastify';
 
-// This is to create a unique id for each uploaded listing
-import { v4 as uuidv4 } from 'uuid';
-
-function CreateListing() {
+function EditListing() {
   // If you have an APIKEY for the goelocation google API, you need to set the default of this to true
   // es-lint-disable-next-line
   const [geolocationEnabled, setGeolocationEnabled] = useState(false);
 
-  // loading component state variable
+  // State variable
   const [loading, setLoading] = useState(false);
+  const [listing, setListing] = useState(null);
 
   // Creating the state variable that is the form data, which will get converted to a new listing
   const [formData, setFormData] = useState({
@@ -67,16 +68,41 @@ function CreateListing() {
   const auth = getAuth();
   // Hook to navigate to other pages
   const navigate = useNavigate();
+  const params = useParams();
 
   // isMounted prevents memory leaks in case the useEffect gets called when there is no information
   const isMounted = useRef(true);
 
-  // UseEffect is a hooks that gets called everytime a variable in the second parameter [] changes. If the [] is empty, useEffect only gets called when the component is first rendered
+  //   UseEffect to redirect if the listing does not belong to the user
   useEffect(() => {
-    // Only when the component gets mounted you can check the user auth to display the data
+    if (listing && listing.userRef !== auth.currentUser.uid) {
+      toast.error('You are not authorized to edit that listing');
+      navigate('/');
+    }
+  });
+
+  // UseEffect hook to fetch the existing listing data
+  useEffect(() => {
+    setLoading(true);
+    const getListing = async () => {
+      const docRef = doc(db, 'listings', params.listingId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setListing(docSnap.data());
+        setFormData({ ...docSnap.data(), address: docSnap.data().location });
+        setLoading(false);
+      } else {
+        navigate('/');
+        toast.error('Listing does not exist');
+      }
+    };
+    getListing();
+  }, [params.listingId]);
+
+  // UseEffect hook to get userData. Same as the CreateListing Component
+  useEffect(() => {
     if (isMounted) {
       onAuthStateChanged(auth, user => {
-        // Only if there is a user, the data is displayed, else, it gets redirected.
         if (user) {
           setFormData({ ...formData, userRef: user.uid });
         } else {
@@ -84,17 +110,14 @@ function CreateListing() {
         }
       });
     }
-    // This avoids memory leaks
     return () => {
       isMounted.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMounted]);
 
-  //   Function to change each variable inside the formData as the user updates the form
+  //   Function to change each variable inside the formData as the user updates the form. Identical to the one in CreateListing Component
   const onMutate = e => {
-    // Create a boolean variable for the field.
-    // This is because e.target.value returns a string even on booleans
     let boolean = null;
     if (e.target.value === 'true') {
       boolean = true;
@@ -102,14 +125,12 @@ function CreateListing() {
     if (e.target.value === 'false') {
       boolean = false;
     }
-    // Add the files to the form data if there are any
     if (e.target.files) {
       setFormData(prevState => ({
         ...prevState,
         images: e.target.files,
       }));
     }
-    // Add the rest of the inputs (boolean or other types) to the form data
     if (!e.target.files) {
       setFormData(prevState => ({
         ...prevState,
@@ -118,14 +139,10 @@ function CreateListing() {
     }
   };
 
-  // Function to submit the data and create a listing
+  // Function to submit the data and create a listing (Equal to the one in createListing except for the commented parts)
   const onSubmit = async e => {
     e.preventDefault();
-
-    // Show Loading Spinner Component
     setLoading(true);
-
-    // First checks to see if information is correct
     if (discountedPrice > regularPrice) {
       setLoading(false);
       toast.error('Discounted price needs to be less than regular price');
@@ -136,9 +153,6 @@ function CreateListing() {
       toast.error('Maximum allowed is 6 images');
       return;
     }
-
-    // Use the geolocation API to get the latitude and longitude (If enabled with the API KEY)
-    // This was pending to implement because I didn´t want to put credit card info on google
     let geolocation = {};
     let location;
     if (geolocationEnabled) {
@@ -146,7 +160,6 @@ function CreateListing() {
         `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=PUTVALIDKEYHERE`
       );
       const data = await response.json();
-
       geolocation.lat = data.results[0]?.geometry.location.lat ?? 0;
       geolocation.lng = data.results[0]?.geometry.location.lng ?? 0;
       location =
@@ -163,12 +176,7 @@ function CreateListing() {
       geolocation.lat = latitude;
       geolocation.lng = longitude;
     }
-
-    // This had to be moved because the geolocation API formatted_address doesnt work very well on all cases.
     location = address;
-
-    // Store image in the database to get a downloadable url from the user input
-    // 1. Function to store a single image on firebase
     const storeImg = async image => {
       return new Promise((resolve, reject) => {
         const storage = getStorage();
@@ -176,10 +184,8 @@ function CreateListing() {
           contentType: 'image/jpeg',
         };
         const fileName = `${auth.currentUser.uid}-${image.name}-${uuidv4()}`;
-
         const storageRef = ref(storage, 'images/' + fileName);
         const uploadTask = uploadBytesResumable(storageRef, image, metadata);
-
         uploadTask.on(
           'state_changed',
           snapshot => {
@@ -208,44 +214,40 @@ function CreateListing() {
         );
       });
     };
-    // 2. Loop through the images array to upload all the images
     const imgUrls = await Promise.all(
       [...images].map(image => storeImg(image))
     ).catch(err => {
       setLoading(false);
       toast.error('Sorry, something went wrong uploading the images');
     });
-
-    // Add the listing to the Data base
     const formDataCopy = {
       ...formData,
       imgUrls,
       geolocation,
       timestamp: serverTimestamp(),
     };
-
-    // Do data clean up for the location, original images and the discounted price
     formDataCopy.location = address;
     delete formDataCopy.address;
     delete formDataCopy.images;
     !formDataCopy.offer && delete formDataCopy.discountedPrice;
 
-    // Add the listing to the data base using firebase
-    const docRef = await addDoc(collection(db, 'listings'), formDataCopy);
-
-    // Once the upload is finished, redirect to the next page
+    // Change the listing data in the data base
+    const docRef = doc(db, 'listings', params.listingId);
+    await updateDoc(docRef, formDataCopy);
+    // End of change
     setLoading(false);
     toast.success('Listing uploaded and saved');
     navigate(`/category/${formDataCopy.type}/${docRef.id}`);
   };
 
+  //   The jsx return is exactly the same as the createListing Component
   if (loading) {
     return <Spinner />;
   }
   return (
     <div className="profile">
       <header>
-        <p className="pageHeader">Create a New Listing</p>
+        <p className="pageHeader">Edit Listing</p>
       </header>
       <main>
         <form onSubmit={onSubmit}>
@@ -281,7 +283,6 @@ function CreateListing() {
             minLength="8"
             required
           />
-
           <div className="formRooms flex">
             <div>
               <label className="formLabel"> Bedrooms</label>
@@ -359,7 +360,6 @@ function CreateListing() {
             onChange={onMutate}
             required
           />
-
           {!geolocationEnabled && (
             <div className="formLatLng flex">
               <div>
@@ -420,7 +420,6 @@ function CreateListing() {
             />
             {type === 'rent' && <p className="formPriceText">$/month</p>}
           </div>
-
           {offer && (
             <>
               <label className="formLabel">Discounted Price</label>
@@ -439,7 +438,6 @@ function CreateListing() {
               </div>
             </>
           )}
-
           <label className="formLabel">Images</label>
           <p className="imagesInfo">
             The first image will be the cover of the listing. 6 images maximum
@@ -455,7 +453,7 @@ function CreateListing() {
             required
           />
           <button type="submit" className="primaryButton createListingButton">
-            Create Listing
+            Update Listing
           </button>
         </form>
       </main>
@@ -463,4 +461,4 @@ function CreateListing() {
   );
 }
 
-export default CreateListing;
+export default EditListing;

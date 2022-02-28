@@ -5,30 +5,72 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { getAuth, updateProfile } from 'firebase/auth';
-import { updateDoc, doc } from 'firebase/firestore';
+import {
+  updateDoc,
+  doc,
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  deleteDoc,
+} from 'firebase/firestore';
 import { db } from '../firebase.config';
+
+import ListingItem from '../components/ListingItem';
 
 import arrowRight from '../assets/svg/keyboardArrowRightIcon.svg';
 import homeIcon from '../assets/svg/homeIcon.svg';
 
 function Profile() {
+  // Get User Credentials
   const auth = getAuth();
-  const [changeDetails, setChangeDetails] = useState(false);
 
+  // State variables of the component
+  const [listings, setListings] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [changeDetails, setChangeDetails] = useState(false);
   const [formData, setFormData] = useState({
     name: auth.currentUser.displayName,
     email: auth.currentUser.email,
   });
 
+  // Destructuring to get the data for the form
   const { name, email } = formData;
 
+  // Navigate hooks to redirect to different pages
   const navigate = useNavigate();
 
+  // Hook to get all the user listings when the component renders
+  useEffect(() => {
+    const getUserListings = async () => {
+      const listingsRef = collection(db, 'listings');
+      const q = query(
+        listingsRef,
+        where('userRef', '==', auth.currentUser.uid),
+        orderBy('timestamp', 'desc')
+      );
+      const querySnap = await getDocs(q);
+      let listings = [];
+      querySnap.forEach(doc => {
+        return listings.push({
+          id: doc.id,
+          data: doc.data(),
+        });
+      });
+      setListings(listings);
+      setLoading(false);
+    };
+    getUserListings();
+  }, [auth.currentUser.uid]);
+
+  // Function to log out
   const onLogout = () => {
     auth.signOut();
     navigate('/');
   };
 
+  // Function to change the name of the user
   const onSubmit = async () => {
     try {
       if (auth.currentUser.displayName !== name) {
@@ -47,11 +89,29 @@ function Profile() {
     }
   };
 
+  // Changing the state variable of name when the user changes the form field
   const onChange = e => {
     setFormData(prevState => ({
       ...prevState,
       [e.target.id]: e.target.value,
     }));
+  };
+
+  // Function to delete a listing item of the user profile
+  const onDelete = async listingId => {
+    if (window.confirm('Are you sure you want to delete this listing?')) {
+      const docRef = doc(db, 'listings', listingId);
+      await deleteDoc(docRef);
+      const updatedListings = listings.filter(
+        listing => listing.id != listingId
+      );
+      setListings(updatedListings);
+      toast.success('Successfully deleted listing');
+    }
+  };
+  // Function to edit the listing, only redirects to the edit-listing page
+  const onEdit = listingId => {
+    navigate(`/edit-listing/${listingId}`);
   };
 
   return (
@@ -100,6 +160,23 @@ function Profile() {
           <p>Create a listing to sell or rent your home</p>
           <img src={arrowRight} alt="Arrow Button" />
         </Link>
+        {/* Return the listings of the user */}
+        {!loading && listings?.length > 0 && (
+          <>
+            <p className="listingText">Your listings</p>
+            <ul className="listingsList">
+              {listings.map(listing => (
+                <ListingItem
+                  key={listing.id}
+                  listing={listing.data}
+                  id={listing.id}
+                  onDelete={() => onDelete(listing.id)}
+                  onEdit={() => onEdit(listing.id)}
+                ></ListingItem>
+              ))}
+            </ul>
+          </>
+        )}
       </main>
     </div>
   );
