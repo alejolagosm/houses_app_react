@@ -8,6 +8,9 @@ import { getAuth, updateProfile } from 'firebase/auth';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase.config';
 
+import arrowRight from '../assets/svg/keyboardArrowRightIcon.svg';
+import homeIcon from '../assets/svg/homeIcon.svg';
+
 function Profile() {
   const auth = getAuth();
   const [changeDetails, setChangeDetails] = useState(false);
@@ -91,6 +94,12 @@ function Profile() {
             />
           </form>
         </div>
+
+        <Link to="/create-listing" className="createListing">
+          <img src={homeIcon} alt="Home Icon" />
+          <p>Create a listing to sell or rent your home</p>
+          <img src={arrowRight} alt="Arrow Button" />
+        </Link>
       </main>
     </div>
   );
