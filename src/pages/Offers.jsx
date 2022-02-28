@@ -20,43 +20,44 @@ import Spinner from '../components/Spinner';
 import ListingItem from '../components/ListingItem';
 
 function Offers() {
+  // Create State Variables
   const [listings, setListings] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Create parameters from the url address
   const params = useParams();
 
+  // UseEffect is a function that runs everytime a variable in the [] changes
   useEffect(() => {
+    // This async function searches for all the listings in the database and adds them to the variable
     const fetchListings = async () => {
       try {
         const listingsRef = collection(db, 'listings');
-
         const q = query(
           listingsRef,
           where('offer', '==', true),
           orderBy('timestamp', 'desc'),
           limit(10)
         );
-
         const querySnap = await getDocs(q);
-
         const listings = [];
-
         querySnap.forEach(doc => {
           return listings.push({
             id: doc.id,
             data: doc.data(),
           });
         });
-
         setListings(listings);
         setLoading(false);
       } catch (err) {
         toast.error('Unable to find the listings');
       }
     };
+    // Call the function to get the listings
     fetchListings();
   }, []);
 
+  // JSX return of all the listings that have offers
   return (
     <div className="category">
       <header>

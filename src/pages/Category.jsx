@@ -20,34 +20,32 @@ import Spinner from '../components/Spinner';
 import ListingItem from '../components/ListingItem';
 
 function Category() {
+  // Create State Variables
   const [listings, setListings] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  // Create parameters from the url address
   const params = useParams();
 
+  // UseEffect is a function that runs everytime a variable in the [] changes. In this case, it runs every time you change the url category name (Sale or rent)
   useEffect(() => {
+    // This async function searches for all the listings in the database and adds them to the variable
     const fetchListings = async () => {
       try {
         const listingsRef = collection(db, 'listings');
-
         const q = query(
           listingsRef,
           where('type', '==', params.categoryName),
           orderBy('timestamp', 'desc'),
           limit(10)
         );
-
         const querySnap = await getDocs(q);
-
         const listings = [];
-
         querySnap.forEach(doc => {
           return listings.push({
             id: doc.id,
             data: doc.data(),
           });
         });
-
         setListings(listings);
         setLoading(false);
       } catch (err) {
@@ -57,6 +55,7 @@ function Category() {
     fetchListings();
   }, [params.categoryName]);
 
+  // JSX return
   return (
     <div className="category">
       <header>
